@@ -1,28 +1,30 @@
 import React, { useState, useRef } from "react";
 import { Stage, Layer } from "react-konva";
 import Rectangle from "./reactangle";
-import { useCookies } from "react-cookie";
 import "./canvas.css";
+
 const Canvas_Board = () => {
   const [isNowDrawing, setIsNowDrawing] = useState([]);
   const [rectangles, setRectangles] = useState([]);
-  const [cookies, setCookie] = useCookies(["Stage"]);
-  const [isdragging, setIsdragging] = useState(false);
-  var rectToDraw = cookies.canvas
-    ? cookies.canvas
-    : [...rectangles, ...isNowDrawing];
+  const [isDragging, setIsDragging] = useState(false);
+  var rectToDraw = [...rectangles, ...isNowDrawing];
   const [selectedId, selectShape] = useState(null);
   const stageRef = useRef(null);
+  const imgRef = useRef(null);
+
   const mousedownHandler = (event) => {
-    if (!isdragging) {
+    if (!isDragging) {
       if (rectangles.length === 0) {
         const { x, y } = event.target.getStage().getPointerPosition();
         setRectangles([{ x, y, width: 0, height: 0, key: 0 }]);
       }
+    } else {
+      setRectangles([]);
     }
   };
+
   const mouseupHandler = (e) => {
-    if (!isdragging) {
+    if (!isDragging) {
       if (rectangles.length === 1) {
         const sx = rectangles[0].x;
         const sy = rectangles[0].y;
@@ -38,12 +40,42 @@ const Canvas_Board = () => {
         setRectangles([]);
         setIsNowDrawing(isNowDrawing);
       }
+    } else {
+      setRectangles([]);
     }
-    setIsdragging(false);
+    setIsDragging(false);
   };
+  const mousemoveHandler = (e) => {
+    if (!isDragging) {
+      if (rectangles.length === 1) {
+        const sx = rectangles[0].x;
+        const sy = rectangles[0].y;
+        const { x, y } = e.target.getStage().getPointerPosition();
+        setRectangles([
+          {
+            x: sx,
+            y: sy,
+            width: x - sx,
+            height: y - sy,
+            key: 0,
+          },
+        ]);
+      }
+    } else {
+      setRectangles([]);
+    }
+  };
+
   const downloadCanvas = () => {
-    setCookie("canvas", rectToDraw, { path: "/" });
+    //get base64 uri of the canvas
+    const dataUri = stageRef.current.toDataURL();
+
+    //setting img tag src to dataUri
+
+    imgRef.current.src = dataUri;
+    console.log(dataUri);
   };
+
   const checkDeselect = (e) => {
     // deselect when clicked on empty area
     const clickedOnEmpty = e.target === e.target.getStage();
@@ -51,6 +83,7 @@ const Canvas_Board = () => {
       selectShape(null);
     }
   };
+
   return (
     <div className="canvasWrapper">
       <div
@@ -59,7 +92,7 @@ const Canvas_Board = () => {
         }}
         className="downloadBtn"
       >
-        Save
+        Download
       </div>
       <div className="canvasBlock">
         <Stage
@@ -68,6 +101,7 @@ const Canvas_Board = () => {
           height={600}
           onMouseDown={(checkDeselect, mousedownHandler)}
           onMouseUp={mouseupHandler}
+          onMouseMove={mousemoveHandler}
           onTouchStart={checkDeselect}
           ref={stageRef}
         >
@@ -82,11 +116,10 @@ const Canvas_Board = () => {
                     selectShape(rect.key);
                   }}
                   onChange={(newAttrs) => {
-                    setIsdragging(true);
+                    setIsDragging(true);
                     const rects = rectToDraw.slice();
                     rects[i] = newAttrs;
                     rectToDraw = rects;
-                    selectShape(null);
                   }}
                 />
               );
