@@ -12,9 +12,9 @@
   padding: 1%;
   align-self: center;
   width: max-content;
-  position: relative;
-  margin: 0 0 1% 0;
-  left: 45%;
+  position: absolute;
+  text-decoration: none;
+  margin: 2% 0 0 2.5%;
 }
 .canvasStage {
   background-color: aquamarine;

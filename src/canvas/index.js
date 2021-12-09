@@ -10,7 +10,8 @@ const Canvas_Board = () => {
   var rectToDraw = [...rectangles, ...isNowDrawing];
   const [selectedId, selectShape] = useState(null);
   const stageRef = useRef(null);
-  const imgRef = useRef(null);
+  const fileRef = useRef(null);
+  var reader = new FileReader();
 
   const mousedownHandler = (event) => {
     if (!isDragging) {
@@ -67,13 +68,22 @@ const Canvas_Board = () => {
   };
 
   const downloadCanvas = () => {
-    //get base64 uri of the canvas
-    const dataUri = stageRef.current.toDataURL();
+    var canvasContents = stageRef.current.toDataURL(); // a data URL of the current canvas image
+    var data = { image: canvasContents, date: Date.now() };
+    var string = JSON.stringify(data);
 
-    //setting img tag src to dataUri
+    // create a blob object representing the data as a JSON string
+    var file = new Blob([string], {
+      type: "application/json",
+    });
 
-    imgRef.current.src = dataUri;
-    console.log(dataUri);
+    // trigger a click event on an <a> tag to open the file explorer
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(file);
+    a.download = "data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const checkDeselect = (e) => {
@@ -83,19 +93,35 @@ const Canvas_Board = () => {
       selectShape(null);
     }
   };
+  const loadCanvas = (file) => {
+    console.log(file);
+    if (file) {
+      // read the contents of the first file in the <input type="file">
+      reader.readAsText(file);
+    }
+  };
 
   return (
     <div className="canvasWrapper">
-      <div
-        onClick={() => {
-          downloadCanvas();
-        }}
-        className="downloadBtn"
-      >
-        Download
+      <div>
+        <button className="downloadBtn" onClick={downloadCanvas}>
+          Save
+        </button>
+      </div>
+      <div>
+        Load:{" "}
+        <input
+          type="file"
+          id="load"
+          onClick={(e) => {
+            loadCanvas(e.target.files[0]);
+          }}
+          ref={fileRef}
+        />
       </div>
       <div className="canvasBlock">
         <Stage
+          id="canvas"
           className="canvasStage"
           width={800}
           height={600}
