@@ -22,6 +22,8 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
         ref={shapeRef}
         {...shapeProps}
         draggable
+        fill="transparent"
+        stroke="black"
         onDragEnd={(e) => {
           onChange({
             ...shapeProps,
@@ -36,9 +38,6 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
 
-          // reset it back
-          node.scaleX(1);
-          node.scaleY(1);
           onChange({
             ...shapeProps,
             x: node.x(),
@@ -65,45 +64,68 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
   );
 };
 
-const initialRectangles = [
-  {
-    x: 30,
-    y: 30,
-    width: 100,
-    height: 100,
-    fill: "orange",
-    id: "rect1",
-  },
-  {
-    x: 60,
-    y: 50,
-    width: 100,
-    height: 100,
-    fill: "red",
-    id: "rect2",
-  },
-  {
-    x: 40,
-    y: 80,
-    width: 100,
-    height: 100,
-    fill: "yellow",
-    id: "rect3",
-  },
-];
-
 const Canvas_Board = () => {
-  const [rectangles, setRectangles] = useState(initialRectangles);
+  const [isNowDrawing, setIsNowDrawing] = useState([]);
+  const [rectangles, setRectangles] = useState([]);
+  const [isdragging, setIsdragging] = useState(false);
+  var rectToDraw = [...rectangles, ...isNowDrawing];
   const [selectedId, selectShape] = useState(null);
   const stageRef = useRef(null);
   const imgRef = useRef(null);
 
+  const mousedownHandler = (event) => {
+    console.log(isdragging);
+    if (!isdragging) {
+      if (rectangles.length === 0) {
+        const { x, y } = event.target.getStage().getPointerPosition();
+        setRectangles([{ x, y, width: 0, height: 0, key: 0 }]);
+      }
+    }
+  };
+
+  const mouseupHandler = (e) => {
+    if (!isdragging) {
+      if (rectangles.length === 1) {
+        const sx = rectangles[0].x;
+        const sy = rectangles[0].y;
+        const { x, y } = e.target.getStage().getPointerPosition();
+        const annotationToAdd = {
+          x: sx,
+          y: sy,
+          width: x - sx,
+          height: y - sy,
+          key: isNowDrawing.length + 1,
+        };
+        isNowDrawing.push(annotationToAdd);
+        setRectangles([]);
+        setIsNowDrawing(isNowDrawing);
+      }
+    }
+    setIsdragging(false);
+  };
+  const mousemoveHandler = (e) => {
+    if (!isdragging) {
+      if (rectangles.length === 1) {
+        const sx = rectangles[0].x;
+        const sy = rectangles[0].y;
+        const { x, y } = e.target.getStage().getPointerPosition();
+        setRectangles([
+          {
+            x: sx,
+            y: sy,
+            width: x - sx,
+            height: y - sy,
+            key: "0",
+          },
+        ]);
+      }
+    }
+  };
+
   const downloadCanvas = () => {
     //get base64 uri of the canvas
     const dataUri = stageRef.current.toDataURL();
-
     //setting img tag src to dataUri
-
     imgRef.current.src = dataUri;
     console.log(dataUri);
   };
@@ -131,24 +153,27 @@ const Canvas_Board = () => {
           className="canvasStage"
           width={800}
           height={600}
-          onMouseDown={checkDeselect}
+          onMouseDown={(checkDeselect, mousedownHandler)}
+          onMouseUp={mouseupHandler}
           onTouchStart={checkDeselect}
           ref={stageRef}
         >
           <Layer>
-            {rectangles.map((rect, i) => {
+            {rectToDraw.map((rect, i) => {
               return (
                 <Rectangle
-                  key={i}
+                  key={rect.key}
                   shapeProps={rect}
-                  isSelected={rect.id === selectedId}
+                  isSelected={rect.key === selectedId}
                   onSelect={() => {
-                    selectShape(rect.id);
+                    selectShape(rect.key);
                   }}
                   onChange={(newAttrs) => {
-                    const rects = rectangles.slice();
+                    setIsdragging(true);
+                    const rects = rectToDraw.slice();
                     rects[i] = newAttrs;
-                    setRectangles(rects);
+                    rectToDraw = rects;
+                    selectShape(null);
                   }}
                 />
               );
@@ -161,5 +186,4 @@ const Canvas_Board = () => {
     </div>
   );
 };
-
 export default Canvas_Board;
