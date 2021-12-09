@@ -59,7 +59,7 @@ const Canvas_Board = () => {
         }}
         className="downloadBtn"
       >
-        Download
+        Save
       </div>
       <div className="canvasBlock">
         <Stage
