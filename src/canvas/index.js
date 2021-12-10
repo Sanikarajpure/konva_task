@@ -146,6 +146,7 @@ const Canvas_Board = () => {
                     const rects = rectToDraw.slice();
                     rects[i] = newAttrs;
                     rectToDraw = rects;
+                    selectShape(null);
                   }}
                 />
               );
