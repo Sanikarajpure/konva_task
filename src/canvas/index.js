@@ -7,11 +7,13 @@ const Canvas_Board = () => {
   const [isNowDrawing, setIsNowDrawing] = useState([]);
   const [rectangles, setRectangles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
-  var rectToDraw = [...rectangles, ...isNowDrawing];
+  const [loadedData, setLoadedData] = useState(null);
+  var rectToDraw = loadedData
+    ? [...loadedData, ...rectangles, ...isNowDrawing]
+    : [...rectangles, ...isNowDrawing];
   const [selectedId, selectShape] = useState(null);
   const stageRef = useRef(null);
   const fileRef = useRef(null);
-  var reader = new FileReader();
 
   const mousedownHandler = (event) => {
     if (!isDragging) {
@@ -68,17 +70,13 @@ const Canvas_Board = () => {
   };
 
   const downloadCanvas = () => {
-    var canvasContents = stageRef.current.toDataURL(); // a data URL of the current canvas image
-    var data = { image: canvasContents, date: Date.now() };
-    var string = JSON.stringify(data);
-
+    let canvasContents = JSON.stringify(rectToDraw);
     // create a blob object representing the data as a JSON string
-    var file = new Blob([string], {
+    let file = new Blob([canvasContents], {
       type: "application/json",
     });
-
     // trigger a click event on an <a> tag to open the file explorer
-    var a = document.createElement("a");
+    let a = document.createElement("a");
     a.href = URL.createObjectURL(file);
     a.download = "data.json";
     document.body.appendChild(a);
@@ -86,19 +84,23 @@ const Canvas_Board = () => {
     document.body.removeChild(a);
   };
 
-  const checkDeselect = (e) => {
+  function checkDeselect(e) {
     // deselect when clicked on empty area
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
       selectShape(null);
     }
-  };
-  const loadCanvas = (file) => {
-    console.log(file);
-    if (file) {
-      // read the contents of the first file in the <input type="file">
-      reader.readAsText(file);
-    }
+  }
+
+  const loadCanvas = async (e) => {
+    e.preventDefault();
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target.result;
+      let arr = JSON.parse(text);
+      setLoadedData(arr);
+    };
+    reader.readAsText(e.target.files[0]);
   };
 
   return (
@@ -113,8 +115,8 @@ const Canvas_Board = () => {
         <input
           type="file"
           id="load"
-          onClick={(e) => {
-            loadCanvas(e.target.files[0]);
+          onChange={(e) => {
+            loadCanvas(e);
           }}
           ref={fileRef}
         />
