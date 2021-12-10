@@ -8,7 +8,7 @@ const Canvas_Board = () => {
   const [rectangles, setRectangles] = useState([])
   const [isDragging, setIsDragging] = useState(false)
   const [loadedData, setLoadedData] = useState(null)
-  var rectToDraw = loadedData
+  let rectToDraw = loadedData
     ? [...loadedData, ...rectangles, ...isNowDrawing]
     : [...rectangles, ...isNowDrawing]
   const [selectedId, selectShape] = useState(null)
