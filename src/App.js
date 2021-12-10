@@ -1,7 +1,7 @@
-import "./App.css";
-import { CookiesProvider } from "react-cookie";
+import './App.css'
+import { CookiesProvider } from 'react-cookie'
 
-import Canvas from "./canvas/index";
+import Canvas from './canvas/index'
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
         <Canvas />
       </div>
     </CookiesProvider>
-  );
+  )
 }
 
-export default App;
+export default App

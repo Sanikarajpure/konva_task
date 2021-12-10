@@ -1,16 +1,16 @@
-import React, { useRef, useEffect, Fragment } from "react";
-import { Rect, Transformer } from "react-konva";
+import React, { useRef, useEffect, Fragment } from 'react'
+import { Rect, Transformer } from 'react-konva'
 
 const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
-  const shapeRef = useRef();
-  const trRef = useRef();
+  const shapeRef = useRef()
+  const trRef = useRef()
   useEffect(() => {
     if (isSelected) {
       // attaching transformer
-      trRef.current.nodes([shapeRef.current]);
-      trRef.current.getLayer().batchDraw();
+      trRef.current.nodes([shapeRef.current])
+      trRef.current.getLayer().batchDraw()
     }
-  }, [isSelected]);
+  }, [isSelected])
   return (
     <Fragment>
       <Rect
@@ -21,19 +21,19 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
         draggable
         fill="transparent"
         stroke="black"
-        onDragEnd={(e) => {
+        onDragEnd={e => {
           onChange({
             ...shapeProps,
             x: e.target.x(),
             y: e.target.y(),
-          });
+          })
         }}
-        onTransformEnd={(e) => {
+        onTransformEnd={e => {
           // transformer is changing scale
           // to match the data resetting scale on transform end
-          const node = shapeRef.current;
-          const scaleX = node.scaleX();
-          const scaleY = node.scaleY();
+          const node = shapeRef.current
+          const scaleX = node.scaleX()
+          const scaleY = node.scaleY()
 
           onChange({
             ...shapeProps,
@@ -42,7 +42,7 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
             // set min value
             width: Math.max(5, node.width() * scaleX),
             height: Math.max(node.height() * scaleY),
-          });
+          })
         }}
       />
       {isSelected && (
@@ -51,14 +51,14 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
           boundBoxFunc={(oldBox, newBox) => {
             // limit resize
             if (newBox.width < 5 || newBox.height < 5) {
-              return oldBox;
+              return oldBox
             }
-            return newBox;
+            return newBox
           }}
         />
       )}
     </Fragment>
-  );
-};
+  )
+}
 
-export default Rectangle;
+export default Rectangle
